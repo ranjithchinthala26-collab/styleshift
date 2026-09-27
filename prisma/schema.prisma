@@ -1,0 +1,67 @@
+// StyleShift Prisma Schema for SQLite
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model WebsiteAnalysis {
+  id              String                @id @default(cuid())
+  url             String
+  title           String?
+  industry        String                @default("SaaS Platform")
+  audience        String                @default("Developers & Startups")
+  uxScore         Int                   @default(87)
+  layout          String                @default("Hero → Feature Grid → Pricing → Testimonials → Footer")
+  typography      String                @default("Inter + Satoshi (Modern Sans)")
+  colors          String                // JSON array string
+  components      String                // JSON array string
+  rawMetadata     String?
+  createdAt       DateTime              @default(now())
+  transformations StyleTransformation[]
+}
+
+model StyleTransformation {
+  id              String          @id @default(cuid())
+  analysisId      String
+  analysis        WebsiteAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  presetId        String
+  presetName      String
+  presetColor     String
+  themeTokens     String          // JSON design tokens string
+  generatedCss    String
+  createdAt       DateTime        @default(now())
+  exports         ExportPackage[]
+}
+
+model Verification {
+  id          String   @id @default(cuid())
+  url         String
+  fullName    String
+  email       String
+  company     String
+  verifiedAt  DateTime @default(now())
+}
+
+model ExportPackage {
+  id                String              @id @default(cuid())
+  transformationId  String
+  transformation    StyleTransformation @relation(fields: [transformationId], references: [id], onDelete: Cascade)
+  filename          String
+  downloadCount     Int                 @default(1)
+  createdAt         DateTime            @default(now())
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
